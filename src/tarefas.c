@@ -5,8 +5,9 @@
 typedef struct // STRUCT
 {
     uint8_t LED;   // LED
-    uint8_t time;    // time
+    uint16_t Time; //Blinking Time
 } LEDTime; // Define o nome do novo tipo criado
+
 
 osThreadId_t thread1_id, thread2_id, thread3_id, thread4_id;
 
@@ -34,7 +35,7 @@ void thread2(void *arg){
   } // while
 } // thread2
 
-//LED as an argument
+//LED as an argument - Exercise 2 Item 5
 void thread3(void *arg){
   uint8_t state = 0;
   uint32_t tick;
@@ -44,12 +45,11 @@ void thread3(void *arg){
     uint8_t LED = (uint8_t)arg;
     state ^= LED;
     LEDWrite(LED, state);
-    
-    osDelayUntil(tick + 100);
+    osDelay(100);
   } // while
 } // thread3
 
-//LED and time as an arguments
+//LED and time as an arguments - Exercise 2 Item 6
 void thread4(void *arg){
   uint8_t state = 0;
   uint32_t tick;
@@ -60,40 +60,50 @@ void thread4(void *arg){
     state ^= LED;
     LEDWrite(LED, state);
     
-    osDelayUntil(tick + foo->time);
-  } // while3
+    osDelayUntil(tick + foo->Time);
+  } // while4
 
-} // thread
+} // thread4
+
+//LED and time as an arguments using oSDelay() -  Exercise 2 Item 7
+void thread5(void *arg){
+  uint8_t state = 0;
+  LEDTime* foo;
+  while(1){
+    foo = (LEDTime*)arg;
+    uint8_t LED = foo->LED;
+    state ^= LED;
+    LEDWrite(LED, state);
+    osDelay(foo->Time);
+  } // while5
+
+} // thread5
+
 void main(void){
-  LEDInit(LED4 | LED3 | LED2 | LED1);
+  LEDInit(LED1);
+  LEDInit(LED2);
+  LEDInit(LED3);
+  LEDInit(LED4);
+  LEDTime l1, l2, l3, l4;
+  l1.LED = LED1;
+  l1.Time = 200;
   
-  LEDTime led1t1;
-  LEDTime led2t2;
-  LEDTime led3t3;
-  LEDTime led4t4;
-  led1t1.LED = LED1;
-  led1t1.time = 200;
+  l2.LED = LED2;
+  l2.Time = 300;
   
-  led2t2.LED = LED2;
-  led2t2.time = 300;
-  
-  led3t3.LED = LED3;
-  led3t3.time = 500;
-  
-  led4t4.LED = LED4;
-  led4t4.time = 700;
+  l3.LED = LED3;
+  l3.Time = 500;
+
+  l4.LED = LED4;
+  l4.Time = 700;
   
   osKernelInitialize();
   
-  //LED as an argument
-  //thread1_id = osThreadNew(thread3, (void *)LED1, NULL);
-  //thread2_id = osThreadNew(thread3, (void *)LED2, NULL);
-  
   //LED and time as an arguments
-  thread1_id = osThreadNew(thread4, (void *)&led1t1, NULL);
-  thread2_id = osThreadNew(thread4, (void *)&led2t2, NULL);
-  thread3_id = osThreadNew(thread4, (void *)&led3t3, NULL);
-  thread4_id = osThreadNew(thread4, (void *)&led4t4, NULL);
+  thread1_id = osThreadNew(thread5,(void *)&l1, NULL);
+  thread2_id = osThreadNew(thread5,(void *)&l2, NULL);
+  thread3_id = osThreadNew(thread5,(void *)&l3, NULL);
+  thread4_id = osThreadNew(thread5,(void *)&l4, NULL);
   
   if(osKernelGetState() == osKernelReady)
     osKernelStart();
